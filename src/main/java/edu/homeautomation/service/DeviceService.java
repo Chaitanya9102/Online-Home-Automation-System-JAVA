@@ -4,6 +4,7 @@ import edu.homeautomation.model.*;
 import edu.homeautomation.persistence.HomeRepository;
 import java.util.List;
 
+/** Coordinates device commands, compatibility checks, and persistence. */
 public final class DeviceService {
     private final HomeRepository repository;
     public DeviceService(HomeRepository repository) { this.repository = repository; }

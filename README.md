@@ -1,74 +1,87 @@
 # Online Home Automation Control Platform
 
-A Java Swing project for controlling and monitoring a smart home. It demonstrates object-oriented design, collections and generics, synchronized device state, a background environment monitor, and JDBC database classes.
+A Java Swing desktop app for exploring home automation controls. It includes homeowner registration and sign-in, an administrator workspace, simulated devices, automation routines, environment readings, and an SQLite persistence option.
+
+> Device commands and environment readings are simulated. This classroom project does not connect to physical home devices.
 
 ## Features
 
-- Homeowner dashboard with room filters, device controls, temperature and security indicators.
-- Automation rules that can be added, enabled, and disabled.
-- Admin dashboard for reviewing compatible devices and managing demo users.
-- Environment readings updated by a background thread.
-- A repository interface with both an in-memory demo implementation and a JDBC SQLite implementation.
-- Custom validation exception and polymorphic smart-device hierarchy.
+- Login for Homeowner and Administrator roles, plus homeowner account creation.
+- Passwords are stored as salted PBKDF2 hashes in the app's repositories.
+- Homeowner overview for device status, room filtering, security state, and temperature alerts.
+- Simulated on/off controls and brightness/thermostat adjustment.
+- Automation routines with editable enable/disable status.
+- Profile editing for account name and email.
+- Administrator user creation, editing, role assignment, and removal, with safeguards for the active and final administrator.
+- Device compatibility approval and system settings.
+- A background environment monitor, generic repository interface, synchronized operations, and JDBC SQLite persistence.
 
 ## Requirements
 
 - JDK 21 or later.
-- Maven 3.9 or later for the packaged application and SQLite JDBC driver.
+- For a quick in-memory demo: the JDK only.
+- For SQLite persistence and the packaged JAR: Maven 3.9 or later and internet access for the first dependency download.
 
-## Run
+## Run the in-memory demo
 
-For a quick demo on a computer with only the JDK installed, open PowerShell in this folder and run:
+Open PowerShell in this project folder and run:
 
 ```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\run-demo.ps1
 ```
 
-The script compiles the app and starts it with in-memory demo data.
+The policy change applies only to that PowerShell window. The app compiles from source and launches with demo data. Demo-mode changes are cleared when the app closes.
 
-To build a packaged app with SQLite support, use Maven:
+### Demo accounts
 
-From this folder:
+| Role | Email | Password |
+|---|---|---|
+| Homeowner | `alex@example.com` | `Home123!` |
+| Administrator | `admin@haven.local` | `Admin123!` |
 
-```text
+Use **Create a homeowner account** to register another homeowner. Public registration cannot create administrator accounts.
+
+## Run with persistent SQLite storage
+
+From the project folder, build the runnable JAR:
+
+```powershell
 mvn clean package
-java -jar target/home-control-platform-1.0.0.jar
 ```
 
-The app opens in demo mode by default. To use SQLite persistence, set the environment variable `HOME_AUTOMATION_DB` to a SQLite JDBC URL before starting. For example:
-
-```text
-HOME_AUTOMATION_DB=jdbc:sqlite:home-automation.db
-```
-
-On Windows PowerShell:
+Then set the database URL and launch the JAR:
 
 ```powershell
 $env:HOME_AUTOMATION_DB = 'jdbc:sqlite:home-automation.db'
 java -jar target/home-control-platform-1.0.0.jar
 ```
 
-If SQLite is configured but the driver cannot be loaded, the app reports the database error and continues in demo mode. Database tables are initialized automatically from `src/main/resources/schema.sql`.
+The app creates the database tables and sample records on first launch. Users, devices, automation routines, and system settings are saved in the SQLite database. Environment readings are simulated for the current app session.
 
-## Demo access
+To return to in-memory demo mode, close the app and open a new PowerShell window without setting `HOME_AUTOMATION_DB`.
 
-Choose **Homeowner** or **Administrator** from the role selector on the sign-in screen. No password is required for this classroom demo. This is a user-interface role switch, not production authentication.
+## Rubric mapping
+
+- **OOP:** `SmartDevice` inheritance, concrete device types, `Switchable`, polymorphic status, and validation/SQL exceptions.
+- **Collections and generics:** typed lists and repository collections; thread-safe listener collection.
+- **Multithreading and synchronization:** background environment monitor and synchronized device/repository state.
+- **Database operations and JDBC:** `HomeRepository`, `InMemoryHomeRepository`, and `JdbcHomeRepository`.
+
+This is a desktop GUI project. It does not implement Servlets or a web interface.
 
 ## Project structure
 
 ```text
 src/main/java/edu/homeautomation/
   Main.java
-  model/                  Device inheritance, rules, users and readings
-  persistence/            Repository interface, demo store and JDBC DAO
-  service/                Device and environment services
-  ui/                     Swing sign-in screen and dashboards
+  model/                  Devices, users, routines, and environment readings
+  persistence/            Repository interface and demo/JDBC implementations
+  service/                Device control, environment monitor, password hashing
+  ui/                     Sign-in, registration, and role dashboards
 src/main/resources/schema.sql
 ```
 
-## Extending the project
+## Classroom demo note
 
-- Replace the role selector with password-based authentication and hashed passwords.
-- Add CRUD forms for editing users and automation conditions.
-- Connect real hardware through a device adapter instead of the simulated command service.
-- Add logging, validation, and role-based authorization before deploying beyond a classroom demo.
+The seeded accounts are for demonstration only. Replace them with a proper account provisioning and recovery flow before using the software outside a classroom setting.

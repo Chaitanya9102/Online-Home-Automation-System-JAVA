@@ -2,6 +2,7 @@ package edu.homeautomation.model;
 
 import java.util.Objects;
 
+/** Base type for devices; concrete subclasses provide their own status presentation. */
 public abstract class SmartDevice implements Switchable {
     private final String id;
     private final String name;

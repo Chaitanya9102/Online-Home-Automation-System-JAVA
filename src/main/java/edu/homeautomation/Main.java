@@ -10,6 +10,7 @@ import edu.homeautomation.ui.LoginFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+/** Application entry point; selects persistent storage when configured. */
 public final class Main {
     private Main() { }
 
@@ -17,6 +18,11 @@ public final class Main {
         HomeRepository repository = createRepository();
         DeviceService devices = new DeviceService(repository);
         EnvironmentService environment = new EnvironmentService();
+        try {
+            environment.setTemperatureLimit(Double.parseDouble(repository.getSetting("temperature_limit", "28")));
+        } catch (RuntimeException exception) {
+            System.err.println("Using the default temperature alert limit: " + exception.getMessage());
+        }
         environment.start();
 
         try {
