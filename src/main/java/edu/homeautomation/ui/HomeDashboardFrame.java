@@ -157,7 +157,7 @@ public final class HomeDashboardFrame extends JFrame {
         JButton button = new JButton(text);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.BLACK);
         button.setBackground(SURFACE);
         button.setOpaque(true);
         button.setContentAreaFilled(true);
