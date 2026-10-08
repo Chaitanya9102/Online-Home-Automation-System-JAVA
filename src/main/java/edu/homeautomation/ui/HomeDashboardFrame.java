@@ -17,8 +17,10 @@ import java.util.function.Consumer;
 
 /** Role-aware dashboards for homeowners and administrators. */
 public final class HomeDashboardFrame extends JFrame {
-    private static final Color BG = new Color(245, 248, 247);
+    private static final Color BG = new Color(17, 34, 51);
     private static final Color NAVY = new Color(20, 39, 60);
+    private static final Color SURFACE = new Color(35, 59, 79);
+    private static final Color SURFACE_ALT = new Color(43, 70, 91);
     private static final Color GREEN = new Color(47, 131, 107);
     private static final String[] DEVICE_COLUMNS = {"Device", "Room", "Type", "Compatibility", "Action"};
     private static final String[] USER_COLUMNS = {"Name", "Email", "Role"};
@@ -45,6 +47,9 @@ public final class HomeDashboardFrame extends JFrame {
     private JTable userTable;
     private JTextField profileName;
     private JTextField profileEmail;
+    private JPasswordField currentPasswordField;
+    private JPasswordField newPasswordField;
+    private JPasswordField confirmPasswordField;
     private JTextField homeNameField;
     private JTextField temperatureLimitField;
     private final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("h:mm a");
@@ -120,14 +125,17 @@ public final class HomeDashboardFrame extends JFrame {
         online.setBackground(new Color(31, 57, 77));
         online.setBorder(new EmptyBorder(13, 12, 13, 12));
         online.add(LoginFrame.label("●", 12, new Color(111, 205, 159), Font.BOLD), BorderLayout.WEST);
-        online.add(LoginFrame.label("  Home hub online<br>  Simulated device network", 12,
-                new Color(213, 226, 232), Font.PLAIN), BorderLayout.CENTER);
+        online.add(LoginFrame.label("  Home hub online<br>  Simulated device network", 14,
+                Color.WHITE, Font.BOLD), BorderLayout.CENTER);
         panel.add(online);
         panel.add(Box.createVerticalStrut(18));
 
         JButton signOut = new JButton("←  Sign out");
-        signOut.setForeground(new Color(210, 221, 227));
+        signOut.setForeground(Color.WHITE);
         signOut.setBackground(NAVY);
+        signOut.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        signOut.setOpaque(true);
+        signOut.setContentAreaFilled(true);
         signOut.setBorderPainted(false);
         signOut.setFocusPainted(false);
         signOut.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -140,7 +148,7 @@ public final class HomeDashboardFrame extends JFrame {
     }
 
     private JLabel sectionLabel(String value) {
-        JLabel label = LoginFrame.label(value, 10, new Color(136, 162, 177), Font.BOLD);
+        JLabel label = LoginFrame.label(value, 13, Color.WHITE, Font.BOLD);
         label.setBorder(new EmptyBorder(0, 8, 12, 0));
         return label;
     }
@@ -148,9 +156,11 @@ public final class HomeDashboardFrame extends JFrame {
     private void navButton(JPanel parent, String text, String page) {
         JButton button = new JButton(text);
         button.setHorizontalAlignment(SwingConstants.LEFT);
-        button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        button.setForeground(new Color(222, 233, 237));
-        button.setBackground(NAVY);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        button.setForeground(Color.WHITE);
+        button.setBackground(SURFACE);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
         button.setBorder(new EmptyBorder(12, 12, 12, 10));
         button.setFocusPainted(false);
         button.setMaximumSize(new Dimension(190, 43));
@@ -168,13 +178,13 @@ public final class HomeDashboardFrame extends JFrame {
 
     private JPanel topbar() {
         JPanel top = new JPanel(new BorderLayout());
-        top.setBackground(Color.WHITE);
+        top.setBackground(NAVY);
         top.setBorder(new EmptyBorder(17, 30, 17, 30));
         String title = admin ? "Administration" : "Good morning, " + activeUser.name() + "  ☀";
-        pageHeading = LoginFrame.label(title, 22, NAVY, Font.BOLD);
+        pageHeading = LoginFrame.label(title, 24, Color.WHITE, Font.BOLD);
         pageSubheading = LoginFrame.label(admin ? "Manage accounts, devices and platform settings."
                 : "Here’s what’s happening around " + repository.getSetting("home_name", "your home") + ".",
-                12, new Color(113, 129, 138), Font.PLAIN);
+                15, Color.WHITE, Font.BOLD);
         JPanel heading = new JPanel();
         heading.setOpaque(false);
         heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
@@ -192,7 +202,7 @@ public final class HomeDashboardFrame extends JFrame {
         avatar.setFont(new Font("Segoe UI", Font.BOLD, 12));
         avatar.setPreferredSize(new Dimension(37, 37));
         profile.add(avatar);
-        profile.add(LoginFrame.label(activeUser.name(), 13, NAVY, Font.BOLD));
+        profile.add(LoginFrame.label(activeUser.name(), 15, Color.WHITE, Font.BOLD));
         top.add(profile, BorderLayout.EAST);
         return top;
     }
@@ -223,23 +233,23 @@ public final class HomeDashboardFrame extends JFrame {
         JPanel page = pageBase();
         JPanel metrics = new JPanel(new GridLayout(1, 3, 14, 0));
         metrics.setOpaque(false);
-        temperatureValue = LoginFrame.label("22.4° C", 25, NAVY, Font.BOLD);
-        securityValue = LoginFrame.label("All secure", 20, NAVY, Font.BOLD);
-        updatedValue = LoginFrame.label("Updated just now", 11, new Color(119, 135, 144), Font.PLAIN);
-        alertValue = LoginFrame.label("No active alerts", 11, GREEN, Font.BOLD);
+        temperatureValue = LoginFrame.label("22.4° C", 27, Color.WHITE, Font.BOLD);
+        securityValue = LoginFrame.label("All secure", 22, Color.WHITE, Font.BOLD);
+        updatedValue = LoginFrame.label("Updated just now", 14, Color.WHITE, Font.BOLD);
+        alertValue = LoginFrame.label("No active alerts", 14, Color.WHITE, Font.BOLD);
         metrics.add(metricCard("INDOOR TEMPERATURE", temperatureValue,
                 "Comfortable range · live simulation", "◉", new Color(232, 242, 250)));
         metrics.add(metricCard("HOME SECURITY", securityValue,
                 "Security device status", "⌑", new Color(232, 245, 238)));
-        metrics.add(metricCard("CONNECTED DEVICES", LoginFrame.label(deviceService.devices().size() + " devices", 25, NAVY, Font.BOLD),
+        metrics.add(metricCard("CONNECTED DEVICES", LoginFrame.label(deviceService.devices().size() + " devices", 27, Color.WHITE, Font.BOLD),
                 "Your home hub is responding", "⌘", new Color(244, 239, 250)));
 
         JPanel center = new JPanel(new BorderLayout(0, 14));
         center.setOpaque(false);
         JPanel head = new JPanel(new BorderLayout());
         head.setOpaque(false);
-        head.add(LoginFrame.label("Your devices", 18, NAVY, Font.BOLD), BorderLayout.WEST);
-        roomFilter.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        head.add(LoginFrame.label("Your devices", 21, Color.WHITE, Font.BOLD), BorderLayout.WEST);
+        roomFilter.setFont(new Font("Segoe UI", Font.BOLD, 14));
         roomFilter.addActionListener(event -> refreshDevices());
         head.add(roomFilter, BorderLayout.EAST);
         deviceGrid.setOpaque(false);
@@ -256,12 +266,12 @@ public final class HomeDashboardFrame extends JFrame {
 
     private JPanel metricCard(String title, JLabel value, String detail, String symbol, Color tint) {
         JPanel card = new JPanel(new BorderLayout(10, 8));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(230, 236, 234)),
+        card.setBackground(SURFACE);
+        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(SURFACE_ALT),
                 new EmptyBorder(17, 18, 17, 18)));
         JPanel labelRow = new JPanel(new BorderLayout());
         labelRow.setOpaque(false);
-        labelRow.add(LoginFrame.label(title, 10, new Color(107, 126, 133), Font.BOLD), BorderLayout.WEST);
+        labelRow.add(LoginFrame.label(title, 14, Color.WHITE, Font.BOLD), BorderLayout.WEST);
         JLabel icon = new JLabel(symbol, SwingConstants.CENTER);
         icon.setOpaque(true);
         icon.setBackground(tint);
@@ -274,7 +284,7 @@ public final class HomeDashboardFrame extends JFrame {
         bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
         bottom.add(value);
         bottom.add(Box.createVerticalStrut(4));
-        bottom.add(LoginFrame.label(detail, 11, new Color(112, 129, 136), Font.PLAIN));
+        bottom.add(LoginFrame.label(detail, 14, Color.WHITE, Font.BOLD));
         if ("INDOOR TEMPERATURE".equals(title)) {
             bottom.add(Box.createVerticalStrut(4));
             bottom.add(updatedValue);
@@ -294,7 +304,7 @@ public final class HomeDashboardFrame extends JFrame {
             deviceGrid.add(deviceCard(device));
         }
         if (deviceGrid.getComponentCount() == 0) {
-            deviceGrid.add(LoginFrame.label("No devices in this room yet.", 14, new Color(115, 130, 137), Font.PLAIN));
+            deviceGrid.add(LoginFrame.label("No devices in this room yet.", 16, Color.WHITE, Font.BOLD));
         }
         deviceGrid.revalidate();
         deviceGrid.repaint();
@@ -302,8 +312,8 @@ public final class HomeDashboardFrame extends JFrame {
 
     private JPanel deviceCard(SmartDevice device) {
         JPanel card = new JPanel(new BorderLayout(12, 10));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(229, 235, 233)),
+        card.setBackground(SURFACE);
+        card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(SURFACE_ALT),
                 new EmptyBorder(16, 16, 15, 16)));
         JLabel badge = new JLabel(device.getKind().equals("Security") ? "⌑"
                 : device.getKind().equals("Thermostat") ? "♨" : "☼", SwingConstants.CENTER);
@@ -317,10 +327,10 @@ public final class HomeDashboardFrame extends JFrame {
         JPanel middle = new JPanel();
         middle.setOpaque(false);
         middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
-        middle.add(LoginFrame.label(device.getName(), 14, NAVY, Font.BOLD));
+        middle.add(LoginFrame.label(device.getName(), 16, Color.WHITE, Font.BOLD));
         middle.add(Box.createVerticalStrut(4));
-        middle.add(LoginFrame.label(device.getRoom() + "  ·  " + device.statusText(), 11,
-                new Color(112, 129, 136), Font.PLAIN));
+        middle.add(LoginFrame.label(device.getRoom() + "  ·  " + device.statusText(), 14,
+                Color.WHITE, Font.BOLD));
         card.add(middle, BorderLayout.CENTER);
 
         JPanel actions = new JPanel();
@@ -328,9 +338,11 @@ public final class HomeDashboardFrame extends JFrame {
         actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
         JToggleButton toggle = new JToggleButton(device.isOn() ? "On" : "Off", device.isOn());
         toggle.setFocusPainted(false);
-        toggle.setBackground(device.isOn() ? new Color(225, 242, 235) : new Color(242, 245, 244));
-        toggle.setForeground(device.isOn() ? GREEN : new Color(108, 121, 127));
-        toggle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        toggle.setBackground(device.isOn() ? GREEN : SURFACE_ALT);
+        toggle.setForeground(Color.WHITE);
+        toggle.setOpaque(true);
+        toggle.setContentAreaFilled(true);
+        toggle.setFont(new Font("Segoe UI", Font.BOLD, 14));
         toggle.setBorderPainted(false);
         toggle.setAlignmentX(Component.CENTER_ALIGNMENT);
         toggle.setEnabled(device.isCompatible());
@@ -348,10 +360,10 @@ public final class HomeDashboardFrame extends JFrame {
         actions.add(toggle);
         if (device instanceof LightDevice || device instanceof ThermostatDevice) {
             JButton adjust = new JButton("Adjust");
-            adjust.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            adjust.setFont(new Font("Segoe UI", Font.BOLD, 14));
             adjust.setBorderPainted(false);
             adjust.setContentAreaFilled(false);
-            adjust.setForeground(GREEN);
+            adjust.setForeground(Color.WHITE);
             adjust.setAlignmentX(Component.CENTER_ALIGNMENT);
             adjust.setEnabled(device.isCompatible());
             adjust.addActionListener(event -> adjustDevice(device));
@@ -402,14 +414,17 @@ public final class HomeDashboardFrame extends JFrame {
         JPanel page = pageBase();
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        top.add(LoginFrame.label("Your routines", 20, NAVY, Font.BOLD), BorderLayout.WEST);
+        top.add(LoginFrame.label("Your routines", 21, Color.WHITE, Font.BOLD), BorderLayout.WEST);
         JButton add = primaryButton("＋  New routine");
         add.addActionListener(event -> addRule());
         top.add(add, BorderLayout.EAST);
         ruleList.setBackground(BG);
         ruleList.setLayout(new BoxLayout(ruleList, BoxLayout.Y_AXIS));
         page.add(top, BorderLayout.NORTH);
-        page.add(new JScrollPane(ruleList), BorderLayout.CENTER);
+        JScrollPane ruleScroll = new JScrollPane(ruleList);
+        ruleScroll.setBorder(BorderFactory.createEmptyBorder());
+        ruleScroll.getViewport().setBackground(BG);
+        page.add(ruleScroll, BorderLayout.CENTER);
         refreshRules();
         return page;
     }
@@ -418,13 +433,13 @@ public final class HomeDashboardFrame extends JFrame {
         ruleList.removeAll();
         List<AutomationRule> rules = repository.findRules();
         if (rules.isEmpty()) {
-            ruleList.add(LoginFrame.label("No routines yet. Create one to get started.", 14,
-                    new Color(115, 130, 137), Font.PLAIN));
+            ruleList.add(LoginFrame.label("No routines yet. Create one to get started.", 16,
+                    Color.WHITE, Font.BOLD));
         }
         for (AutomationRule rule : rules) {
             JPanel card = new JPanel(new BorderLayout(15, 0));
-            card.setBackground(Color.WHITE);
-            card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(229, 235, 233)),
+            card.setBackground(SURFACE);
+            card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(SURFACE_ALT),
                     new EmptyBorder(18, 18, 18, 18)));
             card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 96));
             JLabel icon = new JLabel("◷", SwingConstants.CENTER);
@@ -437,14 +452,15 @@ public final class HomeDashboardFrame extends JFrame {
             JPanel info = new JPanel();
             info.setOpaque(false);
             info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
-            info.add(LoginFrame.label(rule.getName(), 15, NAVY, Font.BOLD));
+            info.add(LoginFrame.label(rule.getName(), 17, Color.WHITE, Font.BOLD));
             info.add(Box.createVerticalStrut(5));
-            info.add(LoginFrame.label(rule.getCondition() + "   →   " + rule.getAction(), 12,
-                    new Color(108, 125, 133), Font.PLAIN));
+            info.add(LoginFrame.label(rule.getCondition() + "   →   " + rule.getAction(), 14,
+                    Color.WHITE, Font.BOLD));
             card.add(info, BorderLayout.CENTER);
             JCheckBox enabled = new JCheckBox("Enabled", rule.isEnabled());
             enabled.setOpaque(false);
-            enabled.setForeground(rule.isEnabled() ? GREEN : new Color(119, 130, 136));
+            enabled.setForeground(Color.WHITE);
+            enabled.setFont(new Font("Segoe UI", Font.BOLD, 14));
             enabled.addActionListener(event -> {
                 rule.setEnabled(enabled.isSelected());
                 try { repository.updateRule(rule); }
@@ -487,23 +503,43 @@ public final class HomeDashboardFrame extends JFrame {
     private JPanel profilePage() {
         JPanel page = pageBase();
         JPanel card = new JPanel();
-        card.setBackground(Color.WHITE);
+        card.setBackground(SURFACE);
+        card.setOpaque(true);
         card.setBorder(new EmptyBorder(24, 26, 24, 26));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.add(LoginFrame.label("Personal details", 18, NAVY, Font.BOLD));
+        card.add(LoginFrame.label("Personal details", 20, Color.WHITE, Font.BOLD));
         card.add(Box.createVerticalStrut(20));
-        card.add(LoginFrame.label("Name", 13, NAVY, Font.BOLD));
+        card.add(profileLabel("Name"));
         profileName = new JTextField(); styleTextField(profileName);
         card.add(Box.createVerticalStrut(6)); card.add(profileName);
         card.add(Box.createVerticalStrut(16));
-        card.add(LoginFrame.label("Email address", 13, NAVY, Font.BOLD));
+        card.add(profileLabel("Email address"));
         profileEmail = new JTextField(); styleTextField(profileEmail);
         card.add(Box.createVerticalStrut(6)); card.add(profileEmail);
-        card.add(Box.createVerticalStrut(20));
-        JButton save = primaryButton("Save profile");
+        card.add(Box.createVerticalStrut(24));
+        card.add(LoginFrame.label("Update password", 20, Color.WHITE, Font.BOLD));
+        card.add(Box.createVerticalStrut(5));
+        card.add(LoginFrame.label("Leave these fields blank if you want to keep your current password.", 14, Color.WHITE, Font.BOLD));
+        card.add(Box.createVerticalStrut(14));
+        card.add(profileLabel("Current password"));
+        currentPasswordField = new JPasswordField(); styleTextField(currentPasswordField);
+        card.add(Box.createVerticalStrut(6)); card.add(currentPasswordField);
+        card.add(Box.createVerticalStrut(12));
+        card.add(profileLabel("New password (8+ characters)"));
+        newPasswordField = new JPasswordField(); styleTextField(newPasswordField);
+        card.add(Box.createVerticalStrut(6)); card.add(newPasswordField);
+        card.add(Box.createVerticalStrut(12));
+        card.add(profileLabel("Confirm new password"));
+        confirmPasswordField = new JPasswordField(); styleTextField(confirmPasswordField);
+        card.add(Box.createVerticalStrut(6)); card.add(confirmPasswordField);
+        card.add(Box.createVerticalStrut(18));
+        JButton save = primaryButton("Save profile and password");
         save.addActionListener(event -> saveProfile());
         card.add(save);
-        page.add(card, BorderLayout.NORTH);
+        JScrollPane profileScroll = new JScrollPane(card);
+        profileScroll.setBorder(BorderFactory.createEmptyBorder());
+        profileScroll.getViewport().setBackground(BG);
+        page.add(profileScroll, BorderLayout.CENTER);
         loadProfileFields();
         return page;
     }
@@ -514,26 +550,56 @@ public final class HomeDashboardFrame extends JFrame {
     }
 
     private void saveProfile() {
-        String name = profileName.getText().trim();
-        String email = profileEmail.getText().trim().toLowerCase();
-        if (name.isEmpty() || !validEmail(email)) {
-            JOptionPane.showMessageDialog(this, "Enter your name and a valid email address.", "Check your details", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        AppUser existing = repository.findUserByEmail(email);
-        if (existing != null && !email.equalsIgnoreCase(activeUser.email())) {
-            JOptionPane.showMessageDialog(this, "That email address is already in use.", "Check your details", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        char[] currentPassword = currentPasswordField.getPassword();
+        char[] newPassword = newPasswordField.getPassword();
+        char[] confirmation = confirmPasswordField.getPassword();
         try {
-            AppUser updated = new AppUser(name, email, activeUser.role(), activeUser.passwordHash());
+            String name = profileName.getText().trim();
+            String email = profileEmail.getText().trim().toLowerCase();
+            if (name.isEmpty() || !validEmail(email)) {
+                JOptionPane.showMessageDialog(this, "Enter your name and a valid email address.", "Check your details", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            AppUser existing = repository.findUserByEmail(email);
+            if (existing != null && !email.equalsIgnoreCase(activeUser.email())) {
+                JOptionPane.showMessageDialog(this, "That email address is already in use.", "Check your details", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            boolean changingPassword = currentPassword.length > 0 || newPassword.length > 0 || confirmation.length > 0;
+            String passwordHash = activeUser.passwordHash();
+            if (changingPassword) {
+                if (!PasswordSecurity.verify(currentPassword, activeUser.passwordHash())) {
+                    JOptionPane.showMessageDialog(this, "Enter your current password to make a password change.", "Password not updated", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (newPassword.length < 8) {
+                    JOptionPane.showMessageDialog(this, "Choose a new password with at least 8 characters.", "Password not updated", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!Arrays.equals(newPassword, confirmation)) {
+                    JOptionPane.showMessageDialog(this, "The new passwords do not match.", "Password not updated", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                passwordHash = PasswordSecurity.hash(newPassword);
+            }
+
+            AppUser updated = new AppUser(name, email, activeUser.role(), passwordHash);
             if (!email.equalsIgnoreCase(activeUser.email())) repository.deleteUser(activeUser.email());
             repository.saveUser(updated);
             activeUser = updated;
+            currentPasswordField.setText("");
+            newPasswordField.setText("");
+            confirmPasswordField.setText("");
             refreshTopbar();
-            JOptionPane.showMessageDialog(this, "Your profile has been saved.", "Profile updated", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, changingPassword ? "Your profile and password have been updated."
+                    : "Your profile has been saved.", "Profile updated", JOptionPane.INFORMATION_MESSAGE);
         } catch (RuntimeException exception) {
             showError("Your profile could not be saved.", exception);
+        } finally {
+            Arrays.fill(currentPassword, '\0');
+            Arrays.fill(newPassword, '\0');
+            Arrays.fill(confirmation, '\0');
         }
     }
 
@@ -541,12 +607,14 @@ public final class HomeDashboardFrame extends JFrame {
         JPanel page = pageBase();
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        header.add(LoginFrame.label("Platform management", 20, NAVY, Font.BOLD), BorderLayout.WEST);
+        header.add(LoginFrame.label("Platform management", 21, Color.WHITE, Font.BOLD), BorderLayout.WEST);
         header.add(LoginFrame.label(repository.isPersistent() ? "SQLite database connected"
-                        : "Demo data · changes reset when app closes", 12, new Color(106, 124, 131), Font.PLAIN),
+                        : "Demo data · changes reset when app closes", 14, Color.WHITE, Font.BOLD),
                 BorderLayout.EAST);
         JTabbedPane tabs = new JTabbedPane();
-        tabs.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tabs.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tabs.setForeground(Color.WHITE);
+        tabs.setBackground(SURFACE);
         tabs.addTab("Devices", deviceTab());
         tabs.addTab("Users", userTab());
         tabs.addTab("System", systemTab());
@@ -558,7 +626,7 @@ public final class HomeDashboardFrame extends JFrame {
     private JPanel deviceTab() {
         JPanel tab = new JPanel(new BorderLayout(0, 12));
         tab.setBackground(BG);
-        tab.add(LoginFrame.label("Review and approve compatible home devices", 14, NAVY, Font.BOLD), BorderLayout.NORTH);
+        tab.add(LoginFrame.label("Review and approve compatible home devices", 16, Color.WHITE, Font.BOLD), BorderLayout.NORTH);
         deviceTable = createTable(DEVICE_COLUMNS, adminDeviceRows());
         tab.add(new JScrollPane(deviceTable), BorderLayout.CENTER);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -669,6 +737,10 @@ public final class HomeDashboardFrame extends JFrame {
                     && countAdmins() <= 1) {
                 throw new IllegalArgumentException("The platform must keep at least one administrator.");
             }
+            if (existing != null && existing.email().equalsIgnoreCase(activeUser.email())
+                    && !existing.role().equals(cleanRole)) {
+                throw new IllegalArgumentException("Change your role from another administrator account.");
+            }
             String hash = newPassword.length == 0 && existing != null
                     ? existing.passwordHash() : PasswordSecurity.hash(newPassword);
             AppUser updated = new AppUser(cleanName, cleanEmail, cleanRole, hash);
@@ -728,12 +800,12 @@ public final class HomeDashboardFrame extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 1;
         c.gridx = 0; c.gridy = 0;
-        panel.add(LoginFrame.label("System settings", 17, NAVY, Font.BOLD), c);
+        panel.add(LoginFrame.label("System settings", 20, Color.WHITE, Font.BOLD), c);
         c.gridy++;
-        panel.add(new JLabel("Home display name"), c);
+        panel.add(profileLabel("Home display name"), c);
         c.gridx = 1; homeNameField = new JTextField(repository.getSetting("home_name", "My Home"), 20); panel.add(homeNameField, c);
         c.gridx = 0; c.gridy++;
-        panel.add(new JLabel("Temperature alert limit (°C)"), c);
+        panel.add(profileLabel("Temperature alert limit (°C)"), c);
         c.gridx = 1; temperatureLimitField = new JTextField(repository.getSetting("temperature_limit", "28"), 20); panel.add(temperatureLimitField, c);
 
         JButton save = primaryButton("Save system settings");
@@ -741,17 +813,17 @@ public final class HomeDashboardFrame extends JFrame {
         c.gridx = 1; c.gridy++; panel.add(save, c);
 
         c.gridx = 0; c.gridy++; c.gridwidth = 2;
-        panel.add(LoginFrame.label("System monitoring", 16, NAVY, Font.BOLD), c);
+        panel.add(LoginFrame.label("System monitoring", 19, Color.WHITE, Font.BOLD), c);
         c.gridy++;
-        panel.add(LoginFrame.label("Home hub: Online · environment monitor refreshes every 5 seconds", 13, GREEN, Font.PLAIN), c);
+        panel.add(LoginFrame.label("Home hub: Online · environment monitor refreshes every 5 seconds", 15, Color.WHITE, Font.BOLD), c);
         c.gridy++;
-        panel.add(LoginFrame.label("Storage: " + (repository.isPersistent() ? "SQLite database" : "In-memory demo"), 13, NAVY, Font.PLAIN), c);
+        panel.add(LoginFrame.label("Storage: " + (repository.isPersistent() ? "SQLite database" : "In-memory demo"), 15, Color.WHITE, Font.BOLD), c);
         c.gridy++;
         panel.add(LoginFrame.label("Compatible devices: " + deviceService.devices().stream().filter(SmartDevice::isCompatible).count()
-                + " of " + deviceService.devices().size(), 13, NAVY, Font.PLAIN), c);
+                + " of " + deviceService.devices().size(), 15, Color.WHITE, Font.BOLD), c);
         c.gridy++;
-        panel.add(LoginFrame.label("Alerts are shown on the Homeowner overview when readings exceed this limit.", 12,
-                new Color(106, 124, 131), Font.PLAIN), c);
+        panel.add(LoginFrame.label("Alerts are shown on the Homeowner overview when readings exceed this limit.", 14,
+                Color.WHITE, Font.BOLD), c);
         return panel;
     }
 
@@ -782,8 +854,15 @@ public final class HomeDashboardFrame extends JFrame {
         };
         JTable table = new JTable(model);
         table.setRowHeight(40);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        table.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.setForeground(Color.WHITE);
+        table.setBackground(SURFACE);
+        table.setSelectionForeground(Color.WHITE);
+        table.setSelectionBackground(GREEN);
+        table.setGridColor(SURFACE_ALT);
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setBackground(NAVY);
         table.setFillsViewportHeight(true);
         return table;
     }
@@ -814,7 +893,7 @@ public final class HomeDashboardFrame extends JFrame {
         updatedValue.setText("Updated " + reading.recordedAt().format(timeFormat));
         boolean alert = reading.temperature() >= environment.getTemperatureLimit();
         alertValue.setText(alert ? "Temperature alert · check settings" : "No active alerts");
-        alertValue.setForeground(alert ? new Color(174, 90, 44) : GREEN);
+        alertValue.setForeground(Color.WHITE);
     }
 
     private void refreshTopbar() {
@@ -829,8 +908,15 @@ public final class HomeDashboardFrame extends JFrame {
         return email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     }
 
+    private JLabel profileLabel(String text) {
+        return LoginFrame.label(text, 15, Color.WHITE, Font.BOLD);
+    }
+
     private void styleTextField(JTextField field) {
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        field.setForeground(NAVY);
+        field.setBackground(Color.WHITE);
+        field.setCaretColor(NAVY);
         field.setMaximumSize(new Dimension(380, 40));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
@@ -839,9 +925,11 @@ public final class HomeDashboardFrame extends JFrame {
         JButton button = new JButton(text);
         button.setBackground(GREEN);
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 15));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return button;
     }

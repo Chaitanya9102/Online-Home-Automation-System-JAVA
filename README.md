@@ -7,6 +7,7 @@ A Java Swing desktop app for exploring home automation controls. It includes hom
 ## Features
 
 - Login for Homeowner and Administrator roles, plus homeowner account creation.
+- Profile-based password changes require the current password and confirmation of the new password.
 - Passwords are stored as salted PBKDF2 hashes in the app's repositories.
 - Homeowner overview for device status, room filtering, security state, and temperature alerts.
 - Simulated on/off controls and brightness/thermostat adjustment.

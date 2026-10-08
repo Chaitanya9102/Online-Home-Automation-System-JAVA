@@ -14,6 +14,7 @@ import java.util.Arrays;
 /** Sign-in screen and homeowner account registration. */
 public final class LoginFrame extends JFrame {
     private static final Color NAVY = new Color(20, 39, 60);
+    private static final Color SURFACE = new Color(35, 59, 79);
     private static final Color GREEN = new Color(47, 131, 107);
     private final HomeRepository repository;
     private final DeviceService devices;
@@ -45,27 +46,27 @@ public final class LoginFrame extends JFrame {
         hero.add(Box.createVerticalStrut(22));
         hero.add(label("A calmer way\nto run your home.", 34, Color.WHITE, Font.BOLD));
         hero.add(Box.createVerticalStrut(18));
-        hero.add(label("Control your spaces, keep an eye on\nyour environment, and let routines do\nthe little things for you.", 15, new Color(189, 207, 218), Font.PLAIN));
+        hero.add(label("Control your spaces, keep an eye on\nyour environment, and let routines do\nthe little things for you.", 17, Color.WHITE, Font.BOLD));
 
         JPanel form = new JPanel();
-        form.setBackground(new Color(248, 250, 249));
+        form.setBackground(SURFACE);
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
         form.setBorder(new EmptyBorder(58, 54, 42, 54));
-        form.add(label("WELCOME HOME", 12, GREEN, Font.BOLD));
+        form.add(label("WELCOME HOME", 14, Color.WHITE, Font.BOLD));
         form.add(Box.createVerticalStrut(10));
-        form.add(label("Sign in to Haven", 27, NAVY, Font.BOLD));
+        form.add(label("Sign in to Haven", 28, Color.WHITE, Font.BOLD));
         form.add(Box.createVerticalStrut(7));
-        form.add(label("Use your account or create a homeowner profile.", 13, new Color(101, 116, 127), Font.PLAIN));
+        form.add(label("Use your account or create a homeowner profile.", 15, Color.WHITE, Font.BOLD));
         form.add(Box.createVerticalStrut(8));
         form.add(label(repository.isPersistent() ? "SQLite database connected · changes are saved" : "Demo mode · changes reset when the app closes",
-                11, repository.isPersistent() ? GREEN : new Color(145, 105, 54), Font.BOLD));
+                13, Color.WHITE, Font.BOLD));
         form.add(Box.createVerticalStrut(24));
-        form.add(label("Email address", 13, NAVY, Font.BOLD));
+        form.add(label("Email address", 15, Color.WHITE, Font.BOLD));
         emailField = new JTextField("alex@example.com");
         styleField(emailField);
         form.add(Box.createVerticalStrut(6)); form.add(emailField);
         form.add(Box.createVerticalStrut(14));
-        form.add(label("Password", 13, NAVY, Font.BOLD));
+        form.add(label("Password", 15, Color.WHITE, Font.BOLD));
         passwordField = new JPasswordField();
         styleField(passwordField);
         form.add(Box.createVerticalStrut(6)); form.add(passwordField);
@@ -77,8 +78,8 @@ public final class LoginFrame extends JFrame {
         form.add(signIn);
 
         JButton create = new JButton("Create a homeowner account");
-        create.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        create.setForeground(GREEN);
+        create.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        create.setForeground(Color.WHITE);
         create.setContentAreaFilled(false);
         create.setBorderPainted(false);
         create.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -86,9 +87,9 @@ public final class LoginFrame extends JFrame {
         create.addActionListener(event -> createAccount());
         form.add(Box.createVerticalStrut(9)); form.add(create);
         form.add(Box.createVerticalStrut(13));
-        form.add(label("Demo homeowner: alex@example.com  /  Home123!", 11, new Color(105, 123, 132), Font.PLAIN));
+        form.add(label("Demo homeowner: alex@example.com  /  Home123!", 13, Color.WHITE, Font.BOLD));
         form.add(Box.createVerticalStrut(4));
-        form.add(label("Demo administrator: admin@haven.local  /  Admin123!", 11, new Color(105, 123, 132), Font.PLAIN));
+        form.add(label("Demo administrator: admin@haven.local  /  Admin123!", 13, Color.WHITE, Font.BOLD));
 
         root.add(hero);
         root.add(form);
@@ -160,6 +161,9 @@ public final class LoginFrame extends JFrame {
 
     private void styleField(JTextField field) {
         field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        field.setForeground(NAVY);
+        field.setBackground(Color.WHITE);
+        field.setCaretColor(NAVY);
         field.setMaximumSize(new Dimension(340, 40));
         field.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
