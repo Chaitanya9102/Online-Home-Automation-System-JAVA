@@ -34,6 +34,16 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 The policy change applies only to that PowerShell window. The app compiles from source and launches with demo data. Demo-mode changes are cleared when the app closes.
 
+### First-time walkthrough
+
+1. Sign in with one of the demo accounts below, or choose **Create a homeowner account** to register.
+2. A homeowner can use **Overview** to check temperature, security, and connected devices. Use the device controls to switch a device on or off; **Adjust** is available for supported lights and thermostats.
+3. Open **Automations** to create a routine by choosing its condition and action, then enable or disable it as needed.
+4. Open **My profile** to edit account details or change the password. Password changes ask for the current password and confirmation of the new one.
+5. Sign in as the administrator to open **Admin console**. Its sections provide user management, compatibility decisions for devices, system settings, and system monitoring.
+
+The application displays confirmation or validation messages when an action succeeds or needs attention. Device behavior and environment values are simulated.
+
 ### Demo accounts
 
 | Role | Email | Password |
@@ -70,6 +80,44 @@ To return to in-memory demo mode, close the app and open a new PowerShell window
 - **Database operations and JDBC:** `HomeRepository`, `InMemoryHomeRepository`, and `JdbcHomeRepository`.
 
 This is a desktop GUI project. It does not implement Servlets or a web interface.
+
+## Screenshots
+
+The screenshots below show the application with its demo data. The copies in `screenshots/readme/` have a narrow border, and a small strip above the app window has been cropped from screenshots where it appeared. The original captures remain in `screenshots/`.
+
+### Sign-in
+
+<img src="screenshots/readme/sign-in.jpg" alt="Haven sign-in screen with homeowner account creation option" width="900">
+
+### Homeowner dashboard and features
+
+**Overview and device controls**
+
+<img src="screenshots/readme/homeowner-overview.jpg" alt="Homeowner overview showing environment status and device controls" width="900">
+
+**Automation routines**
+
+<img src="screenshots/readme/automations.jpg" alt="Homeowner automation routines with conditions and actions" width="900">
+
+**Profile and password update**
+
+<img src="screenshots/readme/homeowner-profile.jpg" alt="Homeowner profile and password update fields" width="900">
+
+### Administrator dashboard and features
+
+**System overview**
+
+<img src="screenshots/readme/admin-overview.jpg" alt="Administrator overview showing home environment and connected devices" width="900">
+
+**Device compatibility review**
+
+<img src="screenshots/readme/admin-device-compatibility.jpg" alt="Administrator device compatibility approval screen" width="900">
+
+**Administrator profile**
+
+<img src="screenshots/readme/admin-profile.jpg" alt="Administrator profile and password update fields" width="900">
+
+The supplied captures do not include the administrator user-management or system-settings panels. Add those views later if you want the README gallery to document every admin feature.
 
 ## Project structure
 
