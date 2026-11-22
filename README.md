@@ -137,7 +137,7 @@ These images show the Swing app. The three browser screenshots are shown above.
 
 **Device compatibility**
 
-<img src="screenshots/readme/admin-device-compatibility.jpg" alt="Haven desktop device compatibility controls" width="900">
+<img src="screenshots/readme/admin-device-compatibility.jpeg" alt="Haven desktop device compatibility controls" width="900">
 
 **Admin profile**
 
@@ -165,5 +165,6 @@ run-checks.ps1
 ## Java topics in the project
 
 The code uses inheritance, polymorphism, interfaces, exception handling, collections and generics, background monitoring, synchronized shared state, repository classes, JDBC with SQLite, and Java Servlets.
+
 
 
