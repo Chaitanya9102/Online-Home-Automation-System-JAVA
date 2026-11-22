@@ -5,6 +5,7 @@ import edu.homeautomation.persistence.HomeRepository;
 import edu.homeautomation.service.DeviceService;
 import edu.homeautomation.service.EnvironmentService;
 import edu.homeautomation.service.PasswordSecurity;
+import edu.homeautomation.service.ActivityHistory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -19,14 +20,20 @@ public final class LoginFrame extends JFrame {
     private final HomeRepository repository;
     private final DeviceService devices;
     private final EnvironmentService environment;
+    private final ActivityHistory activity;
     private JTextField emailField;
     private JPasswordField passwordField;
 
     public LoginFrame(HomeRepository repository, DeviceService devices, EnvironmentService environment) {
+        this(repository, devices, environment, devices.activityHistory());
+    }
+
+    public LoginFrame(HomeRepository repository, DeviceService devices, EnvironmentService environment, ActivityHistory activity) {
         super("Haven · Home Control");
         this.repository = repository;
         this.devices = devices;
         this.environment = environment;
+        this.activity = activity;
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(940, 620);
         setLocationRelativeTo(null);
@@ -106,7 +113,8 @@ public final class LoginFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "We couldn't match that email and password. Please try again.", "Sign-in unsuccessful", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            new HomeDashboardFrame(repository, devices, environment, user).setVisible(true);
+            activity.record(user.name(), "Sign in", "Signed in to Haven.");
+            new HomeDashboardFrame(repository, devices, environment, user, activity).setVisible(true);
             dispose();
         } catch (RuntimeException exception) {
             showError("We couldn't sign in right now.", exception);
@@ -142,6 +150,7 @@ public final class LoginFrame extends JFrame {
 
             AppUser user = new AppUser(cleanName, cleanEmail, "HOMEOWNER", PasswordSecurity.hash(first));
             repository.saveUser(user);
+            activity.record(user.name(), "Account created", "Homeowner account created.");
             emailField.setText(cleanEmail);
             passwordField.setText("");
             JOptionPane.showMessageDialog(this, "Your account has been created. Sign in with your new details.", "Account created", JOptionPane.INFORMATION_MESSAGE);

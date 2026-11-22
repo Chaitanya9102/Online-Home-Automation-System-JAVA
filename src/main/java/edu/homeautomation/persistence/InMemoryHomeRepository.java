@@ -21,7 +21,7 @@ public final class InMemoryHomeRepository implements HomeRepository {
         devices.add(new LightDevice("L-102", "Bedroom lamp", "Bedroom", false, 40));
         devices.add(new SecurityDevice("S-302", "Motion sensor", "Garage", true));
         rules.add(new AutomationRule("Good night", "At 10:30 PM", "Turn off living room lights", true));
-        rules.add(new AutomationRule("Welcome home", "When entry sensor detects you", "Turn on hallway lights", true));
+        rules.add(new AutomationRule("Welcome home", "When entry sensor detects you", "Turn on Smart thermostat", true));
         users.add(new AppUser("Alex Morgan", "alex@example.com", "HOMEOWNER", PasswordSecurity.hash("Home123!".toCharArray())));
         users.add(new AppUser("System Administrator", "admin@haven.local", "ADMIN", PasswordSecurity.hash("Admin123!".toCharArray())));
         settings.put("home_name", "Alex's Home");

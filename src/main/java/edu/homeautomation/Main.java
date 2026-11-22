@@ -4,6 +4,7 @@ import edu.homeautomation.persistence.HomeRepository;
 import edu.homeautomation.persistence.InMemoryHomeRepository;
 import edu.homeautomation.persistence.JdbcHomeRepository;
 import edu.homeautomation.service.DeviceService;
+import edu.homeautomation.service.ActivityHistory;
 import edu.homeautomation.service.EnvironmentService;
 import edu.homeautomation.ui.LoginFrame;
 
@@ -16,7 +17,8 @@ public final class Main {
 
     public static void main(String[] args) {
         HomeRepository repository = createRepository();
-        DeviceService devices = new DeviceService(repository);
+        ActivityHistory activity = new ActivityHistory();
+        DeviceService devices = new DeviceService(repository, activity);
         EnvironmentService environment = new EnvironmentService();
         try {
             environment.setTemperatureLimit(Double.parseDouble(repository.getSetting("temperature_limit", "28")));
@@ -31,7 +33,7 @@ public final class Main {
             // Swing's cross-platform look and feel remains available.
         }
 
-        SwingUtilities.invokeLater(() -> new LoginFrame(repository, devices, environment).setVisible(true));
+        SwingUtilities.invokeLater(() -> new LoginFrame(repository, devices, environment, activity).setVisible(true));
     }
 
     private static HomeRepository createRepository() {

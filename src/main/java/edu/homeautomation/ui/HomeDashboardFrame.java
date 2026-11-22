@@ -5,6 +5,7 @@ import edu.homeautomation.persistence.HomeRepository;
 import edu.homeautomation.service.DeviceService;
 import edu.homeautomation.service.EnvironmentService;
 import edu.homeautomation.service.PasswordSecurity;
+import edu.homeautomation.service.ActivityHistory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -28,6 +29,7 @@ public final class HomeDashboardFrame extends JFrame {
     private final HomeRepository repository;
     private final DeviceService deviceService;
     private final EnvironmentService environment;
+    private final ActivityHistory activity;
     private final boolean admin;
     private AppUser activeUser;
     private final CardLayout pages = new CardLayout();
@@ -45,6 +47,8 @@ public final class HomeDashboardFrame extends JFrame {
     private JLabel pageSubheading;
     private JTable deviceTable;
     private JTable userTable;
+    private JTable activityTable;
+    private TemperatureChart temperatureChart;
     private JTextField profileName;
     private JTextField profileEmail;
     private JPasswordField currentPasswordField;
@@ -57,10 +61,16 @@ public final class HomeDashboardFrame extends JFrame {
 
     public HomeDashboardFrame(HomeRepository repository, DeviceService deviceService,
                               EnvironmentService environment, AppUser activeUser) {
+        this(repository, deviceService, environment, activeUser, deviceService.activityHistory());
+    }
+
+    public HomeDashboardFrame(HomeRepository repository, DeviceService deviceService,
+                              EnvironmentService environment, AppUser activeUser, ActivityHistory activity) {
         super("Haven · Home Control");
         this.repository = repository;
         this.deviceService = deviceService;
         this.environment = environment;
+        this.activity = activity;
         this.activeUser = activeUser;
         this.admin = "ADMIN".equals(activeUser.role());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -94,6 +104,7 @@ public final class HomeDashboardFrame extends JFrame {
         content.add(automationPage(), "automation");
         content.add(profilePage(), "profile");
         content.add(adminPage(), "admin");
+        content.add(activityPage(), "activity");
         body.add(content, BorderLayout.CENTER);
         shell.add(body, BorderLayout.CENTER);
         setContentPane(shell);
@@ -113,6 +124,7 @@ public final class HomeDashboardFrame extends JFrame {
         panel.add(sectionLabel("YOUR HOME"));
         navButton(panel, "⌂   Overview", "home");
         navButton(panel, "◷   Automations", "automation");
+        navButton(panel, "▤   History", "activity");
         navButton(panel, "♙   My profile", "profile");
         if (admin) {
             panel.add(Box.createVerticalStrut(22));
@@ -140,7 +152,7 @@ public final class HomeDashboardFrame extends JFrame {
         signOut.setFocusPainted(false);
         signOut.setAlignmentX(Component.LEFT_ALIGNMENT);
         signOut.addActionListener(event -> {
-            new LoginFrame(repository, deviceService, environment).setVisible(true);
+            new LoginFrame(repository, deviceService, environment, activity).setVisible(true);
             dispose();
         });
         panel.add(signOut);
@@ -170,6 +182,7 @@ public final class HomeDashboardFrame extends JFrame {
             if ("admin".equals(page)) refreshAdminTables();
             if ("profile".equals(page)) loadProfileFields();
             if ("automation".equals(page)) refreshRules();
+            if ("activity".equals(page)) refreshActivity();
             updateHeading(page);
             pages.show(content, page);
         });
@@ -218,6 +231,7 @@ public final class HomeDashboardFrame extends JFrame {
         switch (page) {
             case "automation" -> { pageHeading.setText("Your automations"); pageSubheading.setText("Small routines that make home feel effortless."); }
             case "profile" -> { pageHeading.setText("Your profile"); pageSubheading.setText("Keep your account details up to date."); }
+            case "activity" -> { pageHeading.setText("Activity & history"); pageSubheading.setText("Review recent controls and simulated readings."); }
             default -> { pageHeading.setText("Good morning, " + activeUser.name() + "  ☀"); pageSubheading.setText("Here’s what’s happening around " + repository.getSetting("home_name", "your home") + "."); }
         }
     }
@@ -350,6 +364,7 @@ public final class HomeDashboardFrame extends JFrame {
             try {
                 JOptionPane.showMessageDialog(this, deviceService.toggle(device));
                 updateSecurityFromDevices();
+                refreshActivity();
             } catch (HomeValidationException exception) {
                 JOptionPane.showMessageDialog(this, exception.getMessage(), "Device unavailable", JOptionPane.WARNING_MESSAGE);
             } catch (RuntimeException exception) {
@@ -385,8 +400,7 @@ public final class HomeDashboardFrame extends JFrame {
             panel.add(brightness, BorderLayout.CENTER);
             brightness.addChangeListener(event -> ((JLabel) panel.getComponent(0)).setText("Brightness: " + brightness.getValue() + "%"));
             if (JOptionPane.showConfirmDialog(this, panel, "Adjust " + light.getName(), JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-                light.setBrightness(brightness.getValue());
-                saveDeviceAndRefresh(light);
+                saveAdjustedDevice(light, brightness.getValue());
             }
         } else if (device instanceof ThermostatDevice thermostat) {
             JSpinner target = new JSpinner(new SpinnerNumberModel(thermostat.getTargetTemperature(), 10, 32, 1));
@@ -394,16 +408,16 @@ public final class HomeDashboardFrame extends JFrame {
             panel.add(new JLabel("Target temperature (°C)"));
             panel.add(target);
             if (JOptionPane.showConfirmDialog(this, panel, "Adjust " + thermostat.getName(), JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-                thermostat.setTargetTemperature((Integer) target.getValue());
-                saveDeviceAndRefresh(thermostat);
+                saveAdjustedDevice(thermostat, (Integer) target.getValue());
             }
         }
     }
 
-    private void saveDeviceAndRefresh(SmartDevice device) {
+    private void saveAdjustedDevice(SmartDevice device, int value) {
         try {
-            repository.saveDevice(device);
+            deviceService.adjust(device, value);
             refreshDevices();
+            refreshActivity();
             JOptionPane.showMessageDialog(this, "Your device settings have been updated.", "Settings saved", JOptionPane.INFORMATION_MESSAGE);
         } catch (RuntimeException exception) {
             showError("The device settings could not be saved.", exception);
@@ -441,7 +455,7 @@ public final class HomeDashboardFrame extends JFrame {
             card.setBackground(SURFACE);
             card.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(SURFACE_ALT),
                     new EmptyBorder(18, 18, 18, 18)));
-            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 96));
+            card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 112));
             JLabel icon = new JLabel("◷", SwingConstants.CENTER);
             icon.setOpaque(true);
             icon.setBackground(new Color(232, 242, 238));
@@ -457,16 +471,34 @@ public final class HomeDashboardFrame extends JFrame {
             info.add(LoginFrame.label(rule.getCondition() + "   →   " + rule.getAction(), 14,
                     Color.WHITE, Font.BOLD));
             card.add(info, BorderLayout.CENTER);
+            JButton runNow = primaryButton("Run now");
+            runNow.setEnabled(rule.isEnabled());
+            runNow.setToolTipText("Run this simulated on/off action now");
+            runNow.addActionListener(event -> {
+                try {
+                    JOptionPane.showMessageDialog(this, deviceService.runAutomation(rule.getAction()),
+                            "Automation complete", JOptionPane.INFORMATION_MESSAGE);
+                    refreshDevices(); refreshActivity(); updateSecurityFromDevices();
+                } catch (HomeValidationException | IllegalArgumentException exception) {
+                    JOptionPane.showMessageDialog(this, exception.getMessage(), "Could not run routine", JOptionPane.WARNING_MESSAGE);
+                }
+            });
+            JPanel ruleActions = new JPanel(new BorderLayout(0, 6));
+            ruleActions.setOpaque(false);
             JCheckBox enabled = new JCheckBox("Enabled", rule.isEnabled());
             enabled.setOpaque(false);
             enabled.setForeground(Color.WHITE);
             enabled.setFont(new Font("Segoe UI", Font.BOLD, 14));
             enabled.addActionListener(event -> {
                 rule.setEnabled(enabled.isSelected());
-                try { repository.updateRule(rule); }
+                runNow.setEnabled(enabled.isSelected());
+                try { repository.updateRule(rule); activity.record(activeUser.name(), "Automation updated",
+                        rule.getName() + (rule.isEnabled() ? " enabled." : " paused.")); }
                 catch (RuntimeException exception) { showError("The routine status could not be saved.", exception); }
             });
-            card.add(enabled, BorderLayout.EAST);
+            ruleActions.add(runNow, BorderLayout.CENTER);
+            ruleActions.add(enabled, BorderLayout.SOUTH);
+            card.add(ruleActions, BorderLayout.EAST);
             ruleList.add(card);
             ruleList.add(Box.createVerticalStrut(12));
         }
@@ -492,7 +524,9 @@ public final class HomeDashboardFrame extends JFrame {
             return;
         }
         try {
+            deviceService.validateAutomationAction(cleanAction);
             repository.saveRule(new AutomationRule(cleanName, cleanCondition, cleanAction, true));
+            activity.record(activeUser.name(), "Automation created", cleanName + " → " + cleanAction);
             refreshRules();
             JOptionPane.showMessageDialog(this, "Your automation is ready.", "Routine created", JOptionPane.INFORMATION_MESSAGE);
         } catch (RuntimeException exception) {
@@ -544,6 +578,86 @@ public final class HomeDashboardFrame extends JFrame {
         return page;
     }
 
+    private JPanel activityPage() {
+        JPanel page = pageBase();
+        JPanel heading = new JPanel(new BorderLayout());
+        heading.setOpaque(false);
+        heading.add(LoginFrame.label("Recent activity and temperature", 21, Color.WHITE, Font.BOLD), BorderLayout.WEST);
+        heading.add(LoginFrame.label("History is kept for this session", 14, Color.WHITE, Font.BOLD), BorderLayout.EAST);
+        temperatureChart = new TemperatureChart();
+        temperatureChart.setPreferredSize(new Dimension(700, 190));
+        temperatureChart.setMinimumSize(new Dimension(400, 160));
+        activityTable = createTable(new String[]{"Time", "User", "Activity", "Details"}, new Object[0][4]);
+        activityTable.getColumnModel().getColumn(3).setPreferredWidth(420);
+        JScrollPane tableScroll = new JScrollPane(activityTable);
+        tableScroll.setPreferredSize(new Dimension(700, 260));
+        JPanel stack = new JPanel();
+        stack.setOpaque(false);
+        stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+        stack.add(temperatureChart);
+        stack.add(Box.createVerticalStrut(14));
+        stack.add(tableScroll);
+        page.add(heading, BorderLayout.NORTH);
+        page.add(stack, BorderLayout.CENTER);
+        refreshActivity();
+        return page;
+    }
+
+    private void refreshActivity() {
+        if (activityTable != null) {
+            DefaultTableModel model = (DefaultTableModel) activityTable.getModel();
+            model.setRowCount(0);
+            DateTimeFormatter format = DateTimeFormatter.ofPattern("h:mm a");
+            activity.latest(50).forEach(event -> model.addRow(new Object[]{event.occurredAt().format(format),
+                    event.actor(), event.action(), event.details()}));
+        }
+        if (temperatureChart != null) temperatureChart.repaint();
+    }
+
+    /** Lightweight editable Swing chart for recent simulated readings. */
+    private final class TemperatureChart extends JPanel {
+        private TemperatureChart() { setOpaque(true); setBackground(SURFACE); setBorder(new EmptyBorder(10, 14, 10, 14)); }
+
+        @Override protected void paintComponent(Graphics raw) {
+            super.paintComponent(raw);
+            Graphics2D g = (Graphics2D) raw.create();
+            try {
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Segoe UI", Font.BOLD, 15));
+                g.drawString("Temperature history · simulated", 14, 22);
+                g.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                g.setColor(environment.latest().temperature() > environment.getTemperatureLimit()
+                        ? new Color(255, 172, 139) : new Color(145, 220, 185));
+                g.drawString(environment.temperatureStatus() + " · "
+                        + String.format("%.1f", environment.latest().temperature()) + "°C", 14, 44);
+                List<EnvironmentReading> readings = environment.temperatureHistory();
+                if (readings.size() < 2) {
+                    g.setColor(Color.WHITE);
+                    g.drawString("Waiting for another reading to draw the history.", 14, 82);
+                    return;
+                }
+                int left=190, right=getWidth()-28, top=34, bottom=getHeight()-25;
+                double min=readings.stream().mapToDouble(EnvironmentReading::temperature).min().orElse(15);
+                double max=readings.stream().mapToDouble(EnvironmentReading::temperature).max().orElse(30);
+                if (max-min < 1) { min-=0.5; max+=0.5; }
+                g.setColor(SURFACE_ALT); g.drawLine(left, bottom, right, bottom); g.drawLine(left, top, left, bottom);
+                g.setColor(new Color(104, 196, 169)); g.setStroke(new BasicStroke(3f));
+                int previousX=left, previousY=bottom;
+                for (int i=0;i<readings.size();i++) {
+                    EnvironmentReading reading=readings.get(i);
+                    int x=left+(right-left)*i/Math.max(1, readings.size()-1);
+                    int y=bottom-(int)((reading.temperature()-min)/(max-min)*(bottom-top));
+                    if (i>0) g.drawLine(previousX, previousY, x, y);
+                    g.fillOval(x-4,y-4,8,8); previousX=x; previousY=y;
+                }
+                g.setColor(Color.WHITE); g.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                g.drawString(String.format("%.1f°", max), left+6, top+12);
+                g.drawString(String.format("%.1f°", min), left+6, bottom-2);
+            } finally { g.dispose(); }
+        }
+    }
+
     private void loadProfileFields() {
         if (profileName != null) profileName.setText(activeUser.name());
         if (profileEmail != null) profileEmail.setText(activeUser.email());
@@ -587,6 +701,8 @@ public final class HomeDashboardFrame extends JFrame {
             AppUser updated = new AppUser(name, email, activeUser.role(), passwordHash);
             if (!email.equalsIgnoreCase(activeUser.email())) repository.deleteUser(activeUser.email());
             repository.saveUser(updated);
+            activity.record(activeUser.name(), existing == null ? "User created" : "User updated",
+                    updated.name() + " · " + updated.role());
             activeUser = updated;
             currentPasswordField.setText("");
             newPasswordField.setText("");
@@ -780,6 +896,7 @@ public final class HomeDashboardFrame extends JFrame {
                 JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
         try {
             repository.deleteUser(email);
+            activity.record(activeUser.name(), "User deleted", selected.name() + " · " + selected.email());
             refreshAdminTables();
         } catch (RuntimeException exception) {
             showError("The user account could not be removed.", exception);
@@ -835,9 +952,10 @@ public final class HomeDashboardFrame extends JFrame {
         }
         try {
             double limit = Double.parseDouble(temperatureLimitField.getText().trim());
-            if (limit < 10 || limit > 40) throw new NumberFormatException();
+            if (!Double.isFinite(limit) || limit < 10 || limit > 40) throw new NumberFormatException();
             repository.saveSetting("home_name", homeName);
             repository.saveSetting("temperature_limit", Double.toString(limit));
+            activity.record(activeUser.name(), "System settings updated", homeName + " · alert at " + limit + "°C");
             environment.setTemperatureLimit(limit);
             updateEnvironment(environment.latest());
             JOptionPane.showMessageDialog(this, "System settings have been updated.", "Settings saved", JOptionPane.INFORMATION_MESSAGE);
@@ -892,8 +1010,10 @@ public final class HomeDashboardFrame extends JFrame {
         securityValue.setText(reading.securityStatus());
         updatedValue.setText("Updated " + reading.recordedAt().format(timeFormat));
         boolean alert = reading.temperature() >= environment.getTemperatureLimit();
-        alertValue.setText(alert ? "Temperature alert · check settings" : "No active alerts");
+        alertValue.setText(alert ? "Alert · above " + String.format("%.0f", environment.getTemperatureLimit()) + "°C limit"
+                : "Within range · limit " + String.format("%.0f", environment.getTemperatureLimit()) + "°C");
         alertValue.setForeground(Color.WHITE);
+        if (temperatureChart != null) temperatureChart.repaint();
     }
 
     private void refreshTopbar() {

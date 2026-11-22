@@ -7,10 +7,17 @@ public final class AutomationRule {
     private boolean enabled;
 
     public AutomationRule(String name, String condition, String action, boolean enabled) {
-        this.name = name;
-        this.condition = condition;
-        this.action = action;
+        this.name = required(name, "Routine name", 80);
+        this.condition = required(condition, "Routine condition", 160);
+        this.action = required(action, "Routine action", 160);
         this.enabled = enabled;
+    }
+
+    private static String required(String value, String label, int maxLength) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(label + " is required.");
+        String clean = value.trim();
+        if (clean.length() > maxLength) throw new IllegalArgumentException(label + " must be " + maxLength + " characters or fewer.");
+        return clean;
     }
 
     public String getName() { return name; }
