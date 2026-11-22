@@ -1,221 +1,175 @@
-# Online Home Automation Control Platform
+# Haven — Online Home Automation Platform
 
-Haven includes a Java Swing desktop app and a browser-based Java Servlet app for managing a simulated smart home. Homeowners can control devices, create automation routines, and monitor home conditions. Administrators can manage users, device compatibility, and system settings. Both versions use the same Java domain classes and support SQLite persistence.
+Haven is a Java project for controlling a simulated smart home. It has two ways to use it: a Swing desktop app and a browser app built with Java Servlets. I built it to practise Java, JDBC, and role-based interfaces while making a project that is easy to demonstrate.
 
-> Device commands and environment readings are simulated. This classroom project does not connect to physical home devices.
+The devices and sensor readings are simulated. Nothing here connects to real locks, lights, or thermostats.
 
-## Features
+## What you can do
 
-- Login for Homeowner and Administrator roles, plus homeowner account creation.
-- Profile-based password changes require the current password and confirmation of the new password.
-- Passwords are stored as salted PBKDF2 hashes in the app's repositories.
-- Homeowner overview for device status, room filtering, security state, and temperature alerts.
-- Simulated on/off controls and brightness/thermostat adjustment.
-- Automation routines with editable enable/disable status.
-- A **Run now** control for enabled on/off routines. Actions use the exact format `Turn on [device name]` or `Turn off [device name]`.
-- A **History** page with recent device and admin actions, a temperature chart, and clear alert/within-range status.
-- Profile editing for account name and email.
-- Administrator user creation, editing, role assignment, and removal, with safeguards for the active and final administrator.
-- Device compatibility approval and system settings.
-- A background environment monitor, generic repository interface, synchronized operations, and JDBC SQLite persistence.
-- A separate, responsive Servlet web application with role-based pages and session sign-in.
+As a **Homeowner**, you can:
+- Check temperature, security status, and connected devices.
+- Turn devices on or off, and adjust supported lights and thermostats.
+- Create, enable, pause, and manually run automation routines.
+- Review recent activity and a chart of simulated temperature readings.
+- Update your profile and password.
 
-The activity list is an in-memory history of up to 100 recent events, and the temperature chart keeps up to 24 simulated readings for the current run. Both reset when the app restarts.
-Routine conditions are descriptive in this classroom demo; they are not evaluated against a clock or physical sensor. **Run now** manually runs the supported on/off action.
+As an **Admin**, you can:
+- Create and manage user accounts and roles.
+- Review device compatibility requests.
+- Update system settings and review system activity.
+
+Both versions share the Java domain and repository code. The desktop demo can run in memory; the persistent desktop and web versions use SQLite through JDBC. Passwords are stored as salted PBKDF2 hashes.
+
+A couple of demo limits: activity history holds up to 100 events and temperature history up to 24 readings for the current run. These histories reset when the app restarts. Routine conditions are descriptions for this demo; they are not automatically evaluated. **Run now** manually performs the routine's supported on/off action.
 
 ## Requirements
 
-- JDK 21 or later.
-- For a quick in-memory demo: the JDK only.
-- For SQLite persistence and the packaged JAR: Maven 3.9 or later and internet access for the first dependency download.
+- JDK 21 or newer.
+- Maven 3.9 or newer for the web app and SQLite/JAR builds.
+- Internet access the first time Maven downloads dependencies.
 
-## Run the in-memory demo
+## Try the desktop app
 
-Open PowerShell in this project folder and run:
+Open PowerShell in the project folder, then run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\run-demo.ps1
 ```
 
-The policy change applies only to that PowerShell window. The app compiles from source and launches with demo data. Demo-mode changes are cleared when the app closes.
+This starts the in-memory demo, so changes made in that run are cleared when you close it. The policy setting only applies to the current PowerShell window.
 
-If PowerShell blocks the script, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in that window before launching it.
-
-### First-time walkthrough
-
-1. Sign in with one of the demo accounts below, or choose **Create a homeowner account** to register.
-2. A homeowner can use **Overview** to check temperature, security, and connected devices. Use the device controls to switch a device on or off; **Adjust** is available for supported lights and thermostats.
-3. Open **Automations** to create a routine and choose its condition and action. To run it immediately, use an action such as `Turn off Bedroom lamp`, then select **Run now**.
-4. Open **History** to review device commands and account changes. The temperature chart fills as simulated readings arrive every five seconds.
-5. Open **My profile** to edit account details or change the password. Password changes ask for the current password and confirmation of the new one.
-6. Sign in as the administrator to open **Admin console**. Review the **Users** and **System** tabs, then open **History** to see recorded admin actions.
-
-### Short presentation walkthrough
-
-1. Start the desktop demo and sign in as the homeowner.
-2. Switch a device, then open **History** to show the recorded action.
-3. Open **Automations** and select **Run now** on **Good night**. The sample action turns off Living room lights.
-4. Sign out and sign in as the administrator. Open **Admin console → Users** and **Admin console → System** to show account management and temperature settings.
-5. Save a home display name or temperature-limit change, then open **History** to show the admin action.
-6. Explain that devices and readings are simulated and that the Java Servlet version provides the browser interface.
-
-The application displays confirmation or validation messages when an action succeeds or needs attention. Device behavior and environment values are simulated.
-
-### Demo accounts
+### Demo sign-ins
 
 | Role | Email | Password |
-|---|---|---|
+| --- | --- | --- |
 | Homeowner | `alex@example.com` | `Home123!` |
-| Administrator | `admin@haven.local` | `Admin123!` |
+| Admin | `admin@haven.local` | `Admin123!` |
 
-Use **Create a homeowner account** to register another homeowner. Public registration cannot create administrator accounts.
+You can also register a homeowner account from the sign-in screen. Public registration does not allow creating an Admin account.
 
-## Run with persistent SQLite storage
+### A quick desktop walkthrough
 
-From the project folder, build the runnable JAR:
+1. Sign in as the homeowner and try a device control.
+2. Open **Automations**, then use **Run now** on an enabled routine.
+3. Visit **History** to see the action and the simulated temperature chart.
+4. Sign out and sign in as Admin. Open the Admin console to review users and settings.
 
-```powershell
-mvn clean package
-```
+## Try the browser app
 
-Then set the database URL and launch the JAR:
+The web app lives in `web/`. It uses Servlets for sign-in, session handling, role checks, homeowner controls, and Admin pages. A security filter protects role-specific routes and checks submitted forms. Jetty runs the app locally during development.
 
-```powershell
-$env:HOME_AUTOMATION_DB = 'jdbc:sqlite:home-automation.db'
-java -jar target/home-control-platform-1.0.0.jar
-```
-
-The app creates the database tables and sample records on first launch. Users, devices, automation routines, and system settings are saved in the SQLite database. Environment readings are simulated for the current app session.
-
-To return to in-memory demo mode, close the app and open a new PowerShell window without setting `HOME_AUTOMATION_DB`.
-
-## Run the web version
-
-The Servlet-based web app is in the `web/` folder. It reuses the Java models, password hashing, and JDBC repository from the desktop project.
-
-Requirements: JDK 21 or later, Maven 3.9 or later, and internet access for the first dependency download.
-
-In PowerShell, from the project folder, run:
+From the project folder, run:
 
 ```powershell
 cd web
 .\run-web.ps1
 ```
 
-Or start it directly with Maven:
+Keep that PowerShell window open, then visit [http://localhost:8080](http://localhost:8080) in your browser. Sign in with either demo account above. Press **Ctrl+C** in the PowerShell window to stop the server.
 
-```powershell
-cd web
-mvn jetty:run
-```
-
-When startup completes, open [http://localhost:8080](http://localhost:8080). Sign in with the demo accounts above, or create a homeowner account. The web version uses a persistent SQLite database named `home-automation-web.db` in the current working directory by default. To select another JDBC URL before starting, set `HOME_AUTOMATION_DB` in PowerShell:
+The web app saves data to `home-automation-web.db` in its working directory by default. To set the SQLite URL yourself before startup:
 
 ```powershell
 $env:HOME_AUTOMATION_DB = 'jdbc:sqlite:home-automation-web.db'
+.\run-web.ps1
 ```
 
-To build a WAR for a Servlet 6 compatible server such as Tomcat 10.1 or later:
+To build the deployable WAR instead of starting Jetty:
 
 ```powershell
 mvn package
 ```
 
-The generated file is `web/target/haven-web.war`.
+The WAR is created at `web/target/haven-web.war` and requires a Servlet 6 compatible server, such as Tomcat 10.1 or later.
 
-## Run the project checks
+### What the web screenshots show
 
-The dependency-light checks cover on-demand automation, invalid automation input, activity-history limits, temperature status, HTML escaping, and homeowner denial from admin routes. From the project folder, run:
+These are screenshots captured from the running browser version. Together they show the Admin dashboard and two working Admin tasks:
+
+- **Overview:** account and device totals, home status, temperature, and navigation to the management pages.
+- **Users:** existing accounts and roles, plus the form for adding an account and the available account actions.
+- **Settings:** editable home-wide settings, including the display name and temperature alert limit.
+
+The screenshots document the pages and visible results of the web application. The user and settings pages demonstrate that Admin data can be viewed and changed through the browser interface; the screenshots are visual evidence, while the feature checks below exercise selected behavior in code.
+
+<img src="screenshots/readme/web-admin-overview.jpg" alt="Haven web Admin overview with home and system status" width="900">
+
+<img src="screenshots/readme/web-admin-users.jpg" alt="Haven web Admin user list and account management form" width="900">
+
+<img src="screenshots/readme/web-admin-settings.jpg" alt="Haven web Admin system settings form" width="900">
+
+## Data and project checks
+
+For a persistent desktop build, open PowerShell in the project folder and run:
+
+```powershell
+mvn clean package
+$env:HOME_AUTOMATION_DB = 'jdbc:sqlite:home-automation.db'
+java -jar target/home-control-platform-1.0.0.jar
+```
+
+The first launch creates the database tables and sample records. The desktop in-memory demo does not use this database setting.
+
+To run the included feature checks, first build the web project once so Maven downloads the Servlet API. Then, from the project folder:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\run-checks.ps1
 ```
 
-The script compiles the Java sources and runs both check classes. It uses the Jakarta Servlet API downloaded when the web project is built with Maven.
+The checks cover core automation and validation behavior, activity and temperature history, HTML escaping, and denying a homeowner access to Admin routes.
 
-## Rubric mapping
+## Screenshots of the desktop app
 
-- **OOP:** `SmartDevice` inheritance, concrete device types, `Switchable`, polymorphic status, and validation/SQL exceptions.
-- **Collections and generics:** typed lists and repository collections; thread-safe listener collection.
-- **Multithreading and synchronization:** background environment monitor and synchronized device/repository state.
-- **Database operations and JDBC:** `HomeRepository`, `InMemoryHomeRepository`, and `JdbcHomeRepository`.
-
-The project includes both a Java Swing desktop application and a separate Servlet-based web application. The web version demonstrates server-side Java, role-based servlet routes, session handling, and JDBC-backed data.
-
-### Updated rubric mapping
-
-- **Servlet implementation:** the browser version uses Java Servlets for sign-in, homeowner actions, administrator functions, and role-protected routes. Servlet code is in `web/src/main/java/edu/homeautomation/web/`; it is a companion web app, separate from the Swing desktop interface.
-- **Code quality and execution:** shared models and services, repository classes, input checks, user-facing error messages, and setup scripts support a modular build and run flow.
-- **Code quality and testing:** `run-checks.ps1` compiles the GUI and Servlet sources and runs checks for device automation, validation, temperature status, HTML escaping, and role access.
-- **Teamwork and collaboration:** use `TEAM-CONTRIBUTIONS.md` to record real feature ownership, reviews, and commit evidence. Replace its example rows before submitting.
-- **Innovation / extra effort:** the History page, simulated temperature chart, and on-demand automation make application behavior easier to demonstrate.
-
-## Screenshots
-
-The screenshots below show the application with its demo data. The copies in `screenshots/readme/` have a narrow border, and a small strip above the app window has been cropped from screenshots where it appeared. The original captures remain in `screenshots/`.
+The following screenshots show the Swing application. They are included alongside the three browser captures above so reviewers can see both interfaces.
 
 ### Sign-in
 
-<img src="screenshots/readme/sign-in.jpg" alt="Haven sign-in screen with homeowner account creation option" width="900">
+<img src="screenshots/readme/sign-in.jpg" alt="Haven desktop sign-in and homeowner registration entry point" width="900">
 
-### Homeowner dashboard and features
+### Homeowner screens
 
-**Overview and device controls**
+<img src="screenshots/readme/homeowner-overview.jpg" alt="Desktop homeowner overview with environment status and device controls" width="900">
 
-<img src="screenshots/readme/homeowner-overview.jpg" alt="Homeowner overview showing environment status and device controls" width="900">
+<img src="screenshots/readme/automations.jpg" alt="Desktop automation routines" width="900">
 
-**Automation routines**
+<img src="screenshots/readme/homeowner-profile.jpg" alt="Desktop homeowner profile and password update" width="900">
 
-<img src="screenshots/readme/automations.jpg" alt="Homeowner automation routines with conditions and actions" width="900">
+### Admin screens
 
-**Profile and password update**
+<img src="screenshots/readme/admin-overview.jpg" alt="Desktop Admin overview" width="900">
 
-<img src="screenshots/readme/homeowner-profile.jpg" alt="Homeowner profile and password update fields" width="900">
+<img src="screenshots/readme/admin-device-compatibility.jpg" alt="Desktop Admin device compatibility review" width="900">
 
-### Administrator dashboard and features
+<img src="screenshots/readme/admin-profile.jpg" alt="Desktop Admin profile" width="900">
 
-**System overview**
-
-<img src="screenshots/readme/admin-overview.jpg" alt="Administrator overview showing home environment and connected devices" width="900">
-
-**Device compatibility review**
-
-<img src="screenshots/readme/admin-device-compatibility.jpg" alt="Administrator device compatibility approval screen" width="900">
-
-**Administrator profile**
-
-<img src="screenshots/readme/admin-profile.jpg" alt="Administrator profile and password update fields" width="900">
-
-**Web version: user management**
-
-<img src="screenshots/readme/web-admin-users.jpg" alt="Haven web Admin user management screen" width="900">
-
-**Web version: system settings**
-
-<img src="screenshots/readme/web-admin-settings.jpg" alt="Haven web Admin system settings screen" width="900">
-
-## Project structure
+## How the project is organized
 
 ```text
 src/main/java/edu/homeautomation/
-  Main.java
-  model/                  Devices, users, routines, and environment readings
-  persistence/            Repository interface and demo/JDBC implementations
-  service/                Device control, environment monitor, password hashing
-  ui/                     Sign-in, registration, and role dashboards
+  model/          Users, devices, routines, and environment readings
+  persistence/    Repository interface and in-memory/JDBC implementations
+  service/        Device control, environment monitoring, password hashing
+  ui/             Swing sign-in and role dashboards
 src/main/resources/schema.sql
+src/test/java/    Core feature checks
 web/
-  pom.xml                  Servlet web-app build and Jetty run configuration
-  src/main/java/           Web servlets, access control, and shared HTML helpers
-  src/main/webapp/         Responsive pages, CSS, and Servlet configuration
-src/test/java/              Shared Java feature checks
-web/src/test/java/           Servlet access-control and HTML-safety checks
-run-checks.ps1               Compile and run project checks
-TEAM-CONTRIBUTIONS.md        Record actual team roles and contribution evidence
+  pom.xml
+  src/main/java/  Servlets, access control, and shared web helpers
+  src/main/webapp/ Pages, styles, and Servlet configuration
+  src/test/java/  Web feature checks
+screenshots/readme/  Screenshots embedded in this README
+run-demo.ps1
+run-checks.ps1
 ```
 
-## Classroom demo note
+## Java concepts shown
 
-The seeded accounts are for demonstration only. Replace them with a proper account provisioning and recovery flow before using the software outside a classroom setting.
+- **OOP:** device inheritance, polymorphic behavior, interfaces, and exception handling.
+- **Collections and generics:** typed lists and repository collections.
+- **Threads and synchronization:** a background environment monitor and synchronized shared state.
+- **Database design:** repository classes separate storage operations from the interface.
+- **JDBC:** SQLite persistence for users, devices, routines, and settings.
+- **Servlets:** role-aware browser routes, sessions, form handling, and web integration.
+
